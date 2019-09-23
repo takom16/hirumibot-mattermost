@@ -95,14 +95,14 @@ def lunch_meeting():
     #lunch_meeting_date_check = False
 
     if lunch_meeting_date_check == True:
-        bot_posts_msg = "@{} さんの参加を受け付けました。".format(posted_user)
+        bot_posts_msg  = "@{} さんの参加を受け付けました！".format(posted_user)
+        bot_posts_msg += "\nわーい！:laughing: :raised_hands:"
     else:
         bot_posts_msg = "今日はランチミーティングの日ではありません。"
 
     bot_posts_content(bot_posts_msg, CHANNEL_ID_LUNCH, posted_user, posted_text)
 
 if __name__ == '__main__':
-    lunch_meeting_notice()
     app.debug = True
     app.run(host='0.0.0.0')
 
