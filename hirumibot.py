@@ -96,9 +96,9 @@ def lunch_meeting():
 
     if lunch_meeting_date_check == True:
         bot_posts_msg  = "@{} さんの参加を受け付けました！".format(posted_user)
-        bot_posts_msg += "\nわーい！:laughing: :raised_hands:"
+        bot_posts_msg += "\nわーい！ :laughing: :raised_hands:"
     else:
-        bot_posts_msg = "今日はランチミーティングの日ではありません。"
+        bot_posts_msg = "今日はランチミーティングの日ではありません :sweat:"
 
     bot_posts_content(bot_posts_msg, CHANNEL_ID_LUNCH, posted_user, posted_text)
 
