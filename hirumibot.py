@@ -15,8 +15,7 @@ MM_CHANNEL_ID_ALL   = config['Mattermost']['MM_CHANNEL_ID_ALL']
 MM_CHANNEL_ID_LUNCH = config['Mattermost']['MM_CHANNEL_ID_LUNCH']
 MM_HIRUMIBOT_TOKEN  = config['Mattermost']['MM_HIRUMIBOT_TOKEN']
 
-def bot_posts_content(posts_msg: str, dst_chl_id: str, quote_flg: bool, 
-                      quoted_user: str = None, qouted_msg: str = None) -> str:
+def bot_posts_content(posts_msg: str, dst_chl_id: str, quoted_user: str = None, qouted_msg: str = None) -> str:
     """ botアカウントでMattermostに投稿する
 
     botアカウントで指定のチャンネルにメッセージを投稿する。
@@ -24,7 +23,6 @@ def bot_posts_content(posts_msg: str, dst_chl_id: str, quote_flg: bool,
 
     :param posts_msg   : botアカウントのメッセージ
     :param dst_chl_id  : 投稿先のチャンネルID
-    :param quote_flg   : Mattermostで投稿されたメッセージを引用するかのフラグ
     :param quoted_user : 引用元のメッセージを投稿したユーザ名
     :param quoted_msg  : 引用元のメッセージ
     :return            : HTTPリクエスト(POST)
@@ -35,8 +33,8 @@ def bot_posts_content(posts_msg: str, dst_chl_id: str, quote_flg: bool,
         'Authorization': 'Bearer ' + MM_HIRUMIBOT_TOKEN,
     }
 
-    # 引用フラグが True の場合は投稿元のメッセージを引用して表示
-    if quote_flg == True:
+    # オプション引数が指定されている場合は投稿元のメッセージを引用して表示
+    if quoted_user != None:
         bot_posts_data = {
             "channel_id": dst_chl_id, 
             "message": posts_msg,
@@ -67,23 +65,23 @@ def bot_posts_content(posts_msg: str, dst_chl_id: str, quote_flg: bool,
 def morning_assembly_notice():
     """ 朝会の通知 """
     bot_posts_message = "朝ミの時間です！"
-    bot_posts_content(bot_posts_message, MM_CHANNEL_ID_ALL, False)
+    bot_posts_content(bot_posts_message, MM_CHANNEL_ID_ALL)
 
 def leaving_on_time_notice():
     """ 定時退社の通知 """
     bot_posts_message = "18時です！\n残業申請をしていない人は帰りましょう！"
-    bot_posts_content(bot_posts_message, MM_CHANNEL_ID_ALL, False)
+    bot_posts_content(bot_posts_message, MM_CHANNEL_ID_ALL)
 
 # ランチミーティング
 def lunch_meeting_notice():
     """ ランチミーティングの通知 """
     bot_posts_message = "今日はランチミーティングの日です！"
-    bot_posts_content(bot_posts_message, MM_CHANNEL_ID_LUNCH, False)
+    bot_posts_content(bot_posts_message, MM_CHANNEL_ID_LUNCH)
 
 def lunch_time_notice():
     """ ランチ時間の通知 """
     bot_posts_message = "ランチの時間です！"
-    bot_posts_content(bot_posts_message, MM_CHANNEL_ID_LUNCH, False)
+    bot_posts_content(bot_posts_message, MM_CHANNEL_ID_LUNCH)
 
 @app.route('/hirumibot', methods=['POST'])
 def lunch_meeting():
@@ -99,8 +97,7 @@ def lunch_meeting():
     else:
         bot_posts_message = "今日はランチミーティングの日ではありません。"
 
-    bot_posts_content(bot_posts_message, MM_CHANNEL_ID_LUNCH, True, 
-                      username_posted_in_mm, text_posted_in_mm)
+    bot_posts_content(bot_posts_message, MM_CHANNEL_ID_LUNCH, username_posted_in_mm, text_posted_in_mm)
 
 if __name__ == '__main__':
     app.debug = True
