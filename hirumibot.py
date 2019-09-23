@@ -9,17 +9,19 @@ config = configparser.ConfigParser()
 config.read('./config.ini')
 app = Flask(__name__)
 
-MM_SERVER_ADDRESS   = config['Mattermost']['MM_SERVER_ADDRESS']
-MM_API_ADDRESS      = MM_SERVER_ADDRESS + '/api/v4/posts'
-MM_CHANNEL_ID_ALL   = config['Mattermost']['MM_CHANNEL_ID_ALL']
-MM_CHANNEL_ID_LUNCH = config['Mattermost']['MM_CHANNEL_ID_LUNCH']
-MM_HIRUMIBOT_TOKEN  = config['Mattermost']['MM_HIRUMIBOT_TOKEN']
+MM_SERVER_ADDRESS = config['Mattermost']['MM_SERVER_ADDRESS']
+MM_API_ADDRESS    = MM_SERVER_ADDRESS + '/api/v4/posts'
+CHANNEL_ID_ALL    = config['Mattermost']['CHANNEL_ID_ALL']
+CHANNEL_ID_LUNCH  = config['Mattermost']['CHANNEL_ID_LUNCH']
+HIRUMIBOT_TOKEN   = config['Mattermost']['HIRUMIBOT_TOKEN']
 
-def bot_posts_content(posts_msg: str, dst_chl_id: str, quoted_user: str = None, qouted_msg: str = None) -> str:
+def bot_posts_content(posts_msg: str, dst_chl_id: str, 
+                      quoted_user: str = None, qouted_msg: str = None) -> str:
     """ botアカウントでMattermostに投稿する
 
     botアカウントで指定のチャンネルにメッセージを投稿する。
-    引用フラグを True にした場合、投稿元のメッセージを引用する形でメッセージを投稿する。
+    オプション引数(quoted_user, quoted_msg)が指定された場合、
+    投稿元のメッセージを引用する形でメッセージを投稿する。
 
     :param posts_msg   : botアカウントのメッセージ
     :param dst_chl_id  : 投稿先のチャンネルID
@@ -30,7 +32,7 @@ def bot_posts_content(posts_msg: str, dst_chl_id: str, quoted_user: str = None, 
 
     bot_posts_headers = {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + MM_HIRUMIBOT_TOKEN,
+        'Authorization': 'Bearer ' + HIRUMIBOT_TOKEN,
     }
 
     # オプション引数が指定されている場合は投稿元のメッセージを引用して表示
@@ -64,42 +66,43 @@ def bot_posts_content(posts_msg: str, dst_chl_id: str, quoted_user: str = None, 
 # 全体への周知
 def morning_assembly_notice():
     """ 朝会の通知 """
-    bot_posts_message = "朝ミの時間です！"
-    bot_posts_content(bot_posts_message, MM_CHANNEL_ID_ALL)
+    bot_posts_msg = "朝ミの時間です！"
+    bot_posts_content(bot_posts_msg, CHANNEL_ID_ALL)
 
 def leaving_on_time_notice():
     """ 定時退社の通知 """
-    bot_posts_message = "18時です！\n残業申請をしていない人は帰りましょう！"
-    bot_posts_content(bot_posts_message, MM_CHANNEL_ID_ALL)
+    bot_posts_msg = "18時です！\n残業申請をしていない人は帰りましょう！"
+    bot_posts_content(bot_posts_msg, CHANNEL_ID_ALL)
 
 # ランチミーティング
 def lunch_meeting_notice():
     """ ランチミーティングの通知 """
-    bot_posts_message = "今日はランチミーティングの日です！"
-    bot_posts_content(bot_posts_message, MM_CHANNEL_ID_LUNCH)
+    bot_posts_msg = "今日はランチミーティングの日です！"
+    bot_posts_content(bot_posts_msg, CHANNEL_ID_LUNCH)
 
 def lunch_time_notice():
     """ ランチ時間の通知 """
-    bot_posts_message = "ランチの時間です！"
-    bot_posts_content(bot_posts_message, MM_CHANNEL_ID_LUNCH)
+    bot_posts_msg = "ランチの時間です！"
+    bot_posts_content(bot_posts_msg, CHANNEL_ID_LUNCH)
 
 @app.route('/hirumibot', methods=['POST'])
 def lunch_meeting():
     """ ランチミーティング """
-    username_posted_in_mm = request.json['user_name']
-    text_posted_in_mm = request.json['text']
+    posted_user = request.json['user_name']
+    posted_text = request.json['text']
 
     lunch_meeting_date_check = True
     #lunch_meeting_date_check = False
 
     if lunch_meeting_date_check == True:
-        bot_posts_message = "@{} さんの参加を受け付けました。".format(username_posted_in_mm)
+        bot_posts_msg = "@{} さんの参加を受け付けました。".format(posted_user)
     else:
-        bot_posts_message = "今日はランチミーティングの日ではありません。"
+        bot_posts_msg = "今日はランチミーティングの日ではありません。"
 
-    bot_posts_content(bot_posts_message, MM_CHANNEL_ID_LUNCH, username_posted_in_mm, text_posted_in_mm)
+    bot_posts_content(bot_posts_msg, CHANNEL_ID_LUNCH, posted_user, posted_text)
 
 if __name__ == '__main__':
+    lunch_meeting_notice()
     app.debug = True
     app.run(host='0.0.0.0')
 
