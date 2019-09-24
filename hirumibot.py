@@ -9,13 +9,12 @@ config = configparser.ConfigParser()
 config.read('./config.ini')
 app = Flask(__name__)
 
-MM_SERVER_ADDRESS = config['Mattermost']['MM_SERVER_ADDRESS']
-MM_API_ADDRESS    = MM_SERVER_ADDRESS + '/api/v4/posts'
-CHANNEL_ID_ALL    = config['Mattermost']['CHANNEL_ID_ALL']
-CHANNEL_ID_LUNCH  = config['Mattermost']['CHANNEL_ID_LUNCH']
-HIRUMIBOT_TOKEN   = config['Mattermost']['HIRUMIBOT_TOKEN']
+MM_API_ADDRESS   = config['Mattermost']['MM_API_ADDRESS']
+CHANNEL_ID_ALL   = config['Mattermost']['CHANNEL_ID_ALL']
+CHANNEL_ID_LUNCH = config['Mattermost']['CHANNEL_ID_LUNCH']
+HIRUMIBOT_TOKEN  = config['Mattermost']['HIRUMIBOT_TOKEN']
 
-def bot_posts_content(posts_msg: str, dst_chl_id: str, 
+def bot_posts_content(posts_msg: str, dst_chl_id: str,
                       quoted_user: str = None, qouted_msg: str = None) -> str:
     """ botアカウントでMattermostに投稿する
 
@@ -38,7 +37,7 @@ def bot_posts_content(posts_msg: str, dst_chl_id: str,
     # オプション引数が指定されている場合は投稿元のメッセージを引用して表示
     if quoted_user != None:
         bot_posts_data = {
-            "channel_id": dst_chl_id, 
+            "channel_id": dst_chl_id,
             "message": posts_msg,
             "props": {
                 "attachments": [
@@ -51,7 +50,7 @@ def bot_posts_content(posts_msg: str, dst_chl_id: str,
         }
     else:
         bot_posts_data = {
-            "channel_id": dst_chl_id, 
+            "channel_id": dst_chl_id,
             "message": posts_msg,
         }
 
@@ -96,7 +95,7 @@ def lunch_meeting():
 
     if lunch_meeting_date_check == True:
         bot_posts_msg  = "@{} さんの参加を受け付けました！".format(posted_user)
-        bot_posts_msg += "\nわーい！ :laughing: :raised_hands:"
+        bot_posts_msg += "わーい！ :laughing: :raised_hands:"
     else:
         bot_posts_msg = "今日はランチミーティングの日ではありません :sweat:"
 
