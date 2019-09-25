@@ -14,11 +14,11 @@ HIRUMIBOT_TOKEN  = config['Mattermost']['HIRUMIBOT_TOKEN']
 
 def bot_posts_content(posts_msg: str, dst_chl_id: str) -> str:
     """
-    botアカウントで指定のチャンネルにメッセージを投稿する。
+    Botアカウントで指定のチャンネルにメッセージを投稿する。
 
-    :param posts_msg   : botアカウントのメッセージ
-    :param dst_chl_id  : 投稿先のチャンネルID
-    :return            : HTTPリクエスト(POST)
+    :param posts_msg  : Botアカウントが投稿するメッセージ
+    :param dst_chl_id : 投稿先のチャンネルID
+    :return           : HTTPリクエスト(POST)
     """
 
     bot_posts_headers = {
@@ -61,9 +61,11 @@ def lunch_time_notice():
     bot_posts_msg = "ランチの時間です！"
     bot_posts_content(bot_posts_msg, CHANNEL_ID_LUNCH)
 
-if __name__ == '__main__':
+def bot_notice():
+    """ Botアカウントから指定の時間にメッセージを通知 """
     # 毎日18:00に定時退社を通知
-    schedule.every().day.at("18:00").do(leaving_on_time_notice)
+    #schedule.every().day.at("18:00").do(leaving_on_time_notice)
+    schedule.every().day.at("23:44").do(leaving_on_time_notice)
 
     # 毎週月曜日・水曜日の09:30に朝会を通知
     schedule.every().monday.at("09:30").do(morning_assembly_notice)
@@ -77,3 +79,5 @@ if __name__ == '__main__':
         schedule.run_pending()
         #sleep(60)
         sleep(1)
+
+bot_notice()
