@@ -1,8 +1,9 @@
-import json
-import requests
 import configparser
-import schedule
+import json
 from time import sleep
+
+import requests
+import schedule
 
 config = configparser.ConfigParser()
 config.read('./config.ini')
@@ -53,7 +54,9 @@ def leaving_on_time_notice():
 # ランチミーティング
 def lunch_meeting_notice():
     """ ランチミーティングの通知 """
-    bot_posts_msg = "今日はランチミーティングの日です！"
+    bot_posts_msg  = "今日はランチミーティングの日です！\n"
+    bot_posts_msg += "参加する方はメッセージの先頭に"
+    bot_posts_msg += " #lunchmeeting とタグを付けて投稿してください！"
     bot_posts_content(bot_posts_msg, CHANNEL_ID_LUNCH)
 
 def lunch_time_notice():
@@ -65,7 +68,7 @@ def bot_notice():
     """ Botアカウントから指定の時間にメッセージを通知 """
     # 毎日18:00に定時退社を通知
     #schedule.every().day.at("18:00").do(leaving_on_time_notice)
-    schedule.every().day.at("23:44").do(leaving_on_time_notice)
+    #schedule.every().day.at("23:44").do(lunch_meeting_notice)
 
     # 毎週月曜日・水曜日の09:30に朝会を通知
     schedule.every().monday.at("09:30").do(morning_assembly_notice)
@@ -78,6 +81,7 @@ def bot_notice():
     while True:
         schedule.run_pending()
         #sleep(60)
+        lunch_meeting_notice()
         sleep(1)
 
 bot_notice()
