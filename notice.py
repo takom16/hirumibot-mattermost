@@ -46,7 +46,7 @@ def holiday_check() -> bool:
     """
     祝日判定
 
-    : return : 実行日が祝日かどうかの判定
+    :return : 実行日が祝日かどうかの判定
     """
     holiday_jadge = jpholiday.is_holiday(date.today())
     return holiday_jadge

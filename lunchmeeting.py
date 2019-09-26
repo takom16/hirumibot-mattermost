@@ -1,7 +1,8 @@
 import configparser
 import json
-from datetime import datetime
+from datetime import datetime, date
 
+import jpholiday
 import requests
 from flask import Flask, request
 
@@ -75,32 +76,39 @@ def reception_possible_check() -> bool:
     """
     ランチミーティングを受付可能な時間帯かをチェックする
 
-    : return : 
+    :return : ランチミーティングを受付可能かの判定
     """
-    reception_possible_flg = False
+    holiday_jadge   = jpholiday.is_holiday(date.today())
     posted_datetime = datetime.now()
-    todays_day = posted_datetime.strftime('%A')
-    exec_hour  = posted_datetime.strftime('%H')
+    posted_weekday  = posted_datetime.strftime('%A')
 
-    return reception_possible_flg
+    # 平日の水曜日 11:00～13:00 の間のみランチミーティングを受け付ける
+    reception_possible_jadge = True
 
+    if holiday_jadge == True:
+        reception_possible_jadge = False
+
+    if posted_weekday != 'Wednesday' and not 11 <= posted_datetime.hour < 13:
+        reception_possible_jadge = False
+
+    return reception_possible_jadge
 
 @app.route('/hirumibot', methods=['POST'])
 def lunch_meeting_manage():
     """ ランチミーティングの管理 """
-    RECEPTION_DAY = 'Wednesday'
-    RECEPTION_START_HOUR = '11'
-    RECEPTION_END_HOUR   = '13'
     mm_posted_user = request.json['user_name']
     mm_posted_msg  = request.json['text']
 
-    #reception_possible_flg = reception_possible_check()
-    reception_possible_flg = True
+    # todo: help処理の追加
 
-    if reception_possible_flg == True:
-        bot_reply_msg = accept_participant(mm_posted_user)
-    else:
+    #reception_possible_jadge = reception_possible_check()
+    reception_possible_jadge = True
+
+    if reception_possible_jadge == False:
         bot_reply_msg = outside_reception_hours_notice()
+    else:
+        # todo: 参加者受付処理の追加
+        bot_reply_msg = accept_participant(mm_posted_user)
 
     bot_reply_content(bot_reply_msg, mm_posted_user, mm_posted_msg)
 
