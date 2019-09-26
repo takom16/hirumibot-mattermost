@@ -67,8 +67,10 @@ def leaving_on_time_notice():
     if holiday_jadge == True:
         return
 
-    bot_posts_msg = ("18時です！\n"
-                     "残業申請をしていない人は帰りましょう！")
+    bot_posts_msg = (
+        "18時です！\n"
+        "残業申請をしていない人は帰りましょう！"
+    )
     bot_posts_content(bot_posts_msg, CHANNEL_ID_ALL)
 
 # ランチミーティング
@@ -78,9 +80,11 @@ def lunch_meeting_notice():
     if holiday_jadge == True:
         return
 
-    bot_posts_msg = ("今日はランチミーティングの日です！\n"
-                     "参加する方はメッセージの先頭に"
-                     " #lunchmeeting とタグを付けて投稿してください！")
+    bot_posts_msg = (
+        "今日はランチミーティングの日です！\n"
+        "参加する方はメッセージの先頭に"
+        " #lunchmeeting とタグを付けて投稿してください！"
+    )
     bot_posts_content(bot_posts_msg, CHANNEL_ID_LUNCH)
 
 def lunch_time_notice():

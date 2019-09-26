@@ -36,10 +36,10 @@ def bot_reply_content(bot_reply_msg: str,
         "message": bot_reply_msg,
         "props": {
             "attachments": [
-                     {
-                      "author_name": mm_posted_user,
-                      "text": mm_posted_msg,
-                     }
+                    {
+                "author_name": mm_posted_user,
+                "text": mm_posted_msg,
+                }
             ]
         },
     }
@@ -58,17 +58,21 @@ def set_help_msg() -> str:
 
     :return : Botアカウントが投稿するメッセージ
     """
-    bot_reply_msg = ("##### ひるみちゃんの使い方\n"
-                     "メッセージの先頭に #lunchmeeting とタグを付けて、"
-                     "コマンドを含む文章を投稿してください。\n\n"
-                     "| 項目 | コマンド |\n"
-                     "| :--- | :------ |\n"
-                     "| 参加する | 参加 |\n"
-                     "| 参加を取り消す | 不参加 |\n"
-                     "| 現在の参加人数を確認 | 人数は？ |\n"
-                     "| 班分け＆出発 | 行くぞ |\n"
-                     "| 参加メンバーのリセット | リセット |\n"
-                     "| ヘルプを表示 | ヘルプ |")
+    bot_reply_msg = (
+        "##### ひるみちゃんの使い方\n"
+        "メッセージの先頭に #lunchmeeting とタグを付けて、"
+        "コマンドを含む文章を投稿してください。\n"
+        "下記コマンド以外でも反応できることがあります。"
+        "いろいろ試してみてね！:wink:\n\n"
+        "| アクション | コマンド |\n"
+        "| :-------- | :------ |\n"
+        "| 参加する | 参加、出席、参戦 |\n"
+        "| 参加を取り消す | キャンセル、やめた、不参加 |\n"
+        "| 現在の参加人数を確認 | 人数は？、何人？、どのくらい？ |\n"
+        "| 班分け＆出発 | 行くぞ、出発、レッツゴー |\n"
+        "| 参加メンバーのリセット | リセット、reset、初期化 |\n"
+        "| ヘルプを表示 | ヘルプ、help、使い方 |"
+    )
     return bot_reply_msg
 
 def accept_participant(mm_posted_user: str) -> str:
@@ -79,7 +83,7 @@ def accept_participant(mm_posted_user: str) -> str:
     :return               : Botアカウントが投稿するメッセージ
     """
     bot_reply_msg  = "@{} さんの参加を受け付けました！".format(mm_posted_user)
-    bot_reply_msg += "わーい！ :laughing: :raised_hands:"
+    bot_reply_msg += "わーい！:laughing::raised_hands:"
     return bot_reply_msg
 
 def set_outside_reception_hours_msg() -> str:
@@ -119,7 +123,7 @@ def lunch_meeting_manage():
     mm_posted_msg  = request.json['text']
 
     # ヘルプはいつでも受け付ける
-    word_list_help = ['help', 'へるぷ', 'ヘルプ', '教えて', 'おしえて']
+    word_list_help = ['help', 'へるぷ', 'ヘルプ', '使い方', 'how to']
     for w_help in word_list_help:
         if w_help in mm_posted_msg:
             bot_reply_msg = set_help_msg()
@@ -134,10 +138,11 @@ def lunch_meeting_manage():
         return
 
     # todo: ランチミーティング受付処理の追加
-    # 不参加
+    # 参加取り消し
 
     # 参加
     bot_reply_msg = accept_participant(mm_posted_user)
+
     # 人数確認
 
     # 出発
