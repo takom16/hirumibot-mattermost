@@ -63,10 +63,10 @@ def keyword_check(category: str, mm_posted_msg: str) -> bool:
     :return              : メッセージ内にキーワードが含まれているかの判定
     """
     conn = sqlite3.connect('hirumibot.sqlite3')
-    query = 'SELECT keyword FROM keyword_list WHERE category = ?'
+    c = conn.cursor()
     target_category = (category,)
 
-    c = conn.cursor()
+    query = 'SELECT keyword FROM keyword_list WHERE category = ?'
     c.execute(query, target_category)
     keyword_list = c.fetchall()
     conn.close()
@@ -102,20 +102,9 @@ def set_help_msg() -> str:
     )
     return bot_reply_msg
 
-def accept_participant(mm_posted_user: str) -> str:
-    """
-    参加者の受付
-
-    :param mm_posted_user : 引用元のメッセージを投稿したユーザ名
-    :return               : Botアカウントが投稿するメッセージ
-    """
-    bot_reply_msg  = "@{} さんの参加を受け付けました！".format(mm_posted_user)
-    bot_reply_msg += "わーい！:laughing::raised_hands:"
-    return bot_reply_msg
-
 def set_outside_reception_hours_msg() -> str:
     """
-    ランチミーティング受付時間外のメッセージをセット。
+    ランチミーティング受付時間外のメッセージをセットする。
 
     :return : Botアカウントが投稿するメッセージ
     """
@@ -143,6 +132,38 @@ def reception_possible_check() -> bool:
 
     return reception_possible_jadge
 
+def accept_participant(mm_posted_user: str) -> str:
+    """
+    参加表明したユーザを参加者テーブルに登録する。
+
+    :param mm_posted_user : メッセージを投稿したユーザ名
+    :return               : Botアカウントが投稿するメッセージ
+    """
+    conn = sqlite3.connect('hirumibot.sqlite3')
+    c = conn.cursor()
+    target_user = (mm_posted_user,)
+
+    # すでに参加者として登録済みのユーザか確認
+    check_query = 'SELECT count(*) FROM participant WHERE username = ?'
+    c.execute(check_query, target_user)
+    registerd_num = c.fetchall()[0][0]
+
+    if registerd_num != 0:
+        conn.close()
+        bot_reply_msg  = "@{} さんは".format(mm_posted_user)
+        bot_reply_msg += "すでに参加表明済みだよ！"
+        return bot_reply_msg
+
+    # 未登録のユーザであれば、参加者登録を行う
+    registration_query = 'INSERT INTO participant(username) VALUES(?)'
+    c.execute(registration_query, target_user)
+    conn.commit()
+    conn.close()
+
+    bot_reply_msg  = "@{} さんの参加を受け付けました！".format(mm_posted_user)
+    bot_reply_msg += "わーい！:laughing::raised_hands:"
+    return bot_reply_msg
+
 @app.route('/hirumibot', methods=['POST'])
 def lunch_meeting_manage():
     """ ランチミーティングの管理 """
@@ -169,7 +190,11 @@ def lunch_meeting_manage():
     # 参加取り消し
 
     # 参加
-    bot_reply_msg = accept_participant(mm_posted_user)
+    keyword_check_jadge = keyword_check('entry', mm_posted_msg)
+    if keyword_check_jadge == True:
+        bot_reply_msg = accept_participant(mm_posted_user)
+        bot_reply_content(bot_reply_msg, mm_posted_user, mm_posted_msg)
+        return
 
     # 出発
 
@@ -177,7 +202,6 @@ def lunch_meeting_manage():
 
     # その他
 
-    bot_reply_content(bot_reply_msg, mm_posted_user, mm_posted_msg)
 
 if __name__ == '__main__':
     app.debug = True
