@@ -53,12 +53,14 @@ def bot_reply_content(bot_reply_msg: str,
 
     return bot_reply_request
 
-def keyword_check(category: str, mm_posted_msg) -> bool:
+def keyword_check(category: str, mm_posted_msg: str) -> bool:
     """
-    指定されたカテゴリのキーワードリストをデータベースから取得する。
+    指定されたカテゴリのキーワードリストをデータベースから取得し、
+    投稿されたメッセージ内にキーワードが含まれているかをチェックする。
 
-    :param category : 取得対象キーワードのカテゴリ
-    :return         : 指定されたカテゴリのキーワードリスト
+    :param category      : チェック対象キーワードのカテゴリ
+    :param mm_posted_msg : 投稿されたメッセージ
+    :return              : メッセージ内にキーワードが含まれているかの判定
     """
     conn = sqlite3.connect('hirumibot.sqlite3')
     query = 'SELECT keyword FROM keyword_list WHERE category = ?'
