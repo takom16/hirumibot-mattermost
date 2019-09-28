@@ -1,6 +1,7 @@
+import calendar
 import configparser
 import json
-from datetime import date
+from datetime import datetime, date
 from time import sleep
 
 import jpholiday
@@ -51,6 +52,26 @@ def holiday_check() -> bool:
     holiday_jadge = jpholiday.is_holiday(date.today())
     return holiday_jadge
 
+def premium_friday_check() -> bool:
+    """
+    プレミアムフライデー判定
+
+    :return : 実行日がプレミアムフライデーかどうかの判定
+    """
+    cal = calendar.Calendar(firstweekday=calendar.FRIDAY)
+    today = datetime.now()
+
+    for days in reversed(cal.monthdatescalendar(today.year, today.month())):
+        premium_friday = days[0]
+        break
+
+    if today.day == premium_friday:
+        premium_friday_jadge = True
+    else:
+        premium_friday_jadge = False
+
+    return premium_friday_jadge
+
 # 全体への周知
 def morning_assembly_notice():
     """ 朝会の通知 """
@@ -73,6 +94,18 @@ def leaving_on_time_notice():
     )
     bot_posts_content(bot_posts_msg, CHANNEL_ID_ALL)
 
+def premium_friday_notice():
+    """ プレミアムフライデーの通知 """
+    premium_friday_jadge = premium_friday_check()
+    if premium_friday_jadge == False:
+        return
+
+    bot_posts_msg = (
+        "本日はプレミアムフライデーです！\n"
+        "早めに仕事を切り上げて、プレ金を満喫しましょう！"
+    )
+    bot_posts_content(bot_posts_msg, CHANNEL_ID_ALL)
+
 # ランチミーティング
 def lunch_meeting_notice():
     """ ランチミーティングの通知 """
@@ -81,9 +114,9 @@ def lunch_meeting_notice():
         return
 
     bot_posts_msg = (
-        "今日はランチミーティングの日です！\n"
+        "本日はランチミーティングの日です！\n"
         "参加する方はメッセージの先頭に"
-        " #lunchmeeting とタグを付けて投稿してください！"
+        " #hirumi とタグを付けて投稿してください！"
     )
     bot_posts_content(bot_posts_msg, CHANNEL_ID_LUNCH)
 
@@ -108,6 +141,9 @@ def bot_notice():
     # 毎日水曜日にランチミーティングを通知
     schedule.every().wednesday.at("11:00").do(lunch_meeting_notice)
     schedule.every().wednesday.at("12:00").do(lunch_time_notice)
+
+    # 毎月末金曜日はプレミアムフライデーを通知
+    schedule.every().friday.at("15:00").do(premium_friday_notice)
 
     while True:
         schedule.run_pending()
