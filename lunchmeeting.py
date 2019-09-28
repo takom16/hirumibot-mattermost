@@ -1,5 +1,6 @@
 import configparser
 import json
+import sqlite3
 from datetime import datetime, date
 
 import jpholiday
@@ -52,26 +53,50 @@ def bot_reply_content(bot_reply_msg: str,
 
     return bot_reply_request
 
+def keyword_check(category: str, mm_posted_msg) -> bool:
+    """
+    指定されたカテゴリのキーワードリストをデータベースから取得する。
+
+    :param category : 取得対象キーワードのカテゴリ
+    :return         : 指定されたカテゴリのキーワードリスト
+    """
+    conn = sqlite3.connect('hirumibot.sqlite3')
+    query = 'SELECT keyword FROM keyword_list WHERE category = ?'
+    target_category = (category,)
+
+    c = conn.cursor()
+    c.execute(query, target_category)
+    keyword_list = c.fetchall()
+    conn.close()
+
+    keyword_check_jadge = False
+    for keyword in keyword_list:
+        if keyword[0] in mm_posted_msg:
+            keyword_check_jadge = True
+            break
+
+    return keyword_check_jadge
+
 def set_help_msg() -> str:
     """
-    ヘルプメッセージをセット
+    ヘルプメッセージをセットする。
 
     :return : Botアカウントが投稿するメッセージ
     """
     bot_reply_msg = (
         "##### ひるみちゃんの使い方\n"
-        "メッセージの先頭に #lunchmeeting とタグを付けて、"
-        "コマンドを含む文章を投稿してください。\n"
-        "下記コマンド以外でも反応できることがあります。"
+        "メッセージの先頭に #hirumi とタグを付けて、"
+        "キーワードを含む文章を投稿してください。\n"
+        "下記キーワード以外でも反応できることがあります。"
         "いろいろ試してみてね！:wink:\n\n"
-        "| アクション | コマンド |\n"
-        "| :-------- | :------ |\n"
-        "| 参加する | 参加、出席、参戦 |\n"
-        "| 参加を取り消す | キャンセル、やめた、不参加 |\n"
-        "| 現在の参加人数を確認 | 人数は？、何人？、どのくらい？ |\n"
-        "| 班分け＆出発 | 行くぞ、出発、レッツゴー |\n"
-        "| 参加メンバーのリセット | リセット、reset、初期化 |\n"
-        "| ヘルプを表示 | ヘルプ、help、使い方 |"
+        "| アクション | キーワード |\n"
+        "| :-------- | :-------- |\n"
+        "| 参加する | 参加、出席、entry |\n"
+        "| 参加を取り消す | キャンセル、欠席、cancle |\n"
+        "| 現在の参加人数を確認 | 人数は？、何人？、count |\n"
+        "| 班分け＆出発 | 行くぞ、出発、go |\n"
+        "| 参加メンバーのリセット | リセット、初期化、reset |\n"
+        "| ヘルプを表示 | ヘルプ、使い方、help |"
     )
     return bot_reply_msg
 
@@ -88,7 +113,7 @@ def accept_participant(mm_posted_user: str) -> str:
 
 def set_outside_reception_hours_msg() -> str:
     """
-    ランチミーティング受付時間外のメッセージをセット
+    ランチミーティング受付時間外のメッセージをセット。
 
     :return : Botアカウントが投稿するメッセージ
     """
@@ -97,7 +122,7 @@ def set_outside_reception_hours_msg() -> str:
 
 def reception_possible_check() -> bool:
     """
-    ランチミーティングを受付可能な時間帯かをチェックする
+    ランチミーティングを受付可能な時間帯かをチェックする。
 
     :return : ランチミーティングを受付可能かの判定
     """
@@ -123,12 +148,11 @@ def lunch_meeting_manage():
     mm_posted_msg  = request.json['text']
 
     # ヘルプはいつでも受け付ける
-    word_list_help = ['help', 'へるぷ', 'ヘルプ', '使い方', 'how to']
-    for w_help in word_list_help:
-        if w_help in mm_posted_msg:
-            bot_reply_msg = set_help_msg()
-            bot_reply_content(bot_reply_msg, mm_posted_user, mm_posted_msg)
-            return
+    keyword_check_jadge = keyword_check('help', mm_posted_msg)
+    if keyword_check_jadge == True:
+        bot_reply_msg = set_help_msg()
+        bot_reply_content(bot_reply_msg, mm_posted_user, mm_posted_msg)
+        return
 
     #reception_possible_jadge = reception_possible_check()
     reception_possible_jadge = True
@@ -138,12 +162,12 @@ def lunch_meeting_manage():
         return
 
     # todo: ランチミーティング受付処理の追加
+    # 人数確認
+
     # 参加取り消し
 
     # 参加
     bot_reply_msg = accept_participant(mm_posted_user)
-
-    # 人数確認
 
     # 出発
 
