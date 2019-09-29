@@ -1,6 +1,7 @@
 import calendar
 import configparser
 import json
+import sqlite3
 from datetime import datetime, date
 from time import sleep
 
@@ -15,6 +16,7 @@ MM_API_ADDRESS   = config['Mattermost']['MM_API_ADDRESS']
 CHANNEL_ID_ALL   = config['Mattermost']['CHANNEL_ID_ALL']
 CHANNEL_ID_LUNCH = config['Mattermost']['CHANNEL_ID_LUNCH']
 HIRUMIBOT_TOKEN  = config['Mattermost']['HIRUMIBOT_TOKEN']
+HIRUMIBOT_DB     = config['hirumibot']['DATABASE_FILE']
 
 def bot_posts_content(posts_msg: str, dst_chl_id: str) -> str:
     """
@@ -112,6 +114,14 @@ def lunch_meeting_notice():
     holiday_jadge = holiday_check()
     if holiday_jadge == True:
         return
+
+    # 事前に参加者テーブルを初期化
+    conn = sqlite3.connect(HIRUMIBOT_DB)
+    c = conn.cursor()
+    reset_query = 'DELETE FROM participant'
+    c.execute(reset_query)
+    conn.commit()
+    conn.close()
 
     bot_posts_msg = (
         "本日はランチミーティングの日です！\n"

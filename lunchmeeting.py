@@ -14,6 +14,7 @@ app = Flask(__name__)
 MM_API_ADDRESS   = config['Mattermost']['MM_API_ADDRESS']
 CHANNEL_ID_LUNCH = config['Mattermost']['CHANNEL_ID_LUNCH']
 HIRUMIBOT_TOKEN  = config['Mattermost']['HIRUMIBOT_TOKEN']
+HIRUMIBOT_DB     = config['hirumibot']['DATABASE_FILE']
 
 def bot_reply_content(bot_reply_msg: str,
                       mm_posted_user: str, mm_posted_msg: str) -> str:
@@ -55,14 +56,14 @@ def bot_reply_content(bot_reply_msg: str,
 
 def keyword_check(category: str, mm_posted_msg: str) -> bool:
     """
-    指定されたカテゴリのキーワードリストをデータベースから取得し、
+    指定されたカテゴリのキーワードをキーワードリストテーブルから取得し、
     投稿されたメッセージ内にキーワードが含まれているかをチェックする。
 
     :param category      : チェック対象キーワードのカテゴリ
     :param mm_posted_msg : 投稿されたメッセージ
     :return              : メッセージ内にキーワードが含まれているかの判定
     """
-    conn = sqlite3.connect('hirumibot.sqlite3')
+    conn = sqlite3.connect(HIRUMIBOT_DB)
     c = conn.cursor()
     target_category = (category,)
 
@@ -79,7 +80,7 @@ def keyword_check(category: str, mm_posted_msg: str) -> bool:
 
     return keyword_check_jadge
 
-def set_help_msg() -> str:
+def help_msg() -> str:
     """
     ヘルプメッセージをセットする。
 
@@ -102,7 +103,7 @@ def set_help_msg() -> str:
     )
     return bot_reply_msg
 
-def set_outside_reception_hours_msg() -> str:
+def outside_reception_hours_msg() -> str:
     """
     ランチミーティング受付時間外のメッセージをセットする。
 
@@ -132,14 +133,22 @@ def reception_possible_check() -> bool:
 
     return reception_possible_jadge
 
-def accept_participant(mm_posted_user: str) -> str:
+def count_participant() -> str:
+    """
+    参加表明済みのユーザの数と一覧を表示する。
+
+    :return : Botアカウントが投稿するメッセージ
+    """
+    pass
+
+def participant_registration(mm_posted_user: str) -> str:
     """
     参加表明したユーザを参加者テーブルに登録する。
 
     :param mm_posted_user : メッセージを投稿したユーザ名
     :return               : Botアカウントが投稿するメッセージ
     """
-    conn = sqlite3.connect('hirumibot.sqlite3')
+    conn = sqlite3.connect(HIRUMIBOT_DB)
     c = conn.cursor()
     target_user = (mm_posted_user,)
 
@@ -164,6 +173,73 @@ def accept_participant(mm_posted_user: str) -> str:
     bot_reply_msg += "わーい！:laughing::raised_hands:"
     return bot_reply_msg
 
+def cancel_participation(mm_posted_user: str) -> str:
+    """
+    参加をキャンセルしたユーザを参加者テーブルから削除する。
+
+    :param mm_posted_user : メッセージを投稿したユーザ名
+    :return               : Botアカウントが投稿するメッセージ
+    """
+    conn = sqlite3.connect(HIRUMIBOT_DB)
+    c = conn.cursor()
+    target_user = (mm_posted_user,)
+
+    # すでに参加者として登録済みのユーザか確認
+    check_query = 'SELECT count(*) FROM participant WHERE username = ?'
+    c.execute(check_query, target_user)
+    registerd_num = c.fetchall()[0][0]
+
+    if registerd_num == 0:
+        conn.close()
+        bot_reply_msg  = "@{} さんは".format(mm_posted_user)
+        bot_reply_msg += "まだ参加表明してないよ！"
+        return bot_reply_msg
+
+    # 参加者登録済みのユーザであれば、参加取り消し処理を行う
+    cancel_query = 'DELETE FROM participant WHERE username = ?'
+    c.execute(cancel_query, target_user)
+    conn.commit()
+    conn.close()
+
+    bot_reply_msg  = "@{} さんの参加を取り消したよ！".format(mm_posted_user)
+    bot_reply_msg += "また今度参加してね！"
+    return bot_reply_msg
+
+def reset_participant() -> str:
+    """
+    参加者テーブルから全ユーザを削除する。
+
+    :return               : Botアカウントが投稿するメッセージ
+    """
+    conn = sqlite3.connect(HIRUMIBOT_DB)
+    c = conn.cursor()
+
+    reset_query = 'DELETE FROM participant'
+    c.execute(reset_query)
+    conn.commit()
+    conn.close()
+
+    bot_reply_msg  = "参加者をリセットしたよ！"
+    return bot_reply_msg
+
+def depart_lunch_meetig() -> str:
+    """
+    ランチミーティングに出発する。
+
+    :return : Botアカウントが投稿するメッセージ
+    """
+    pass
+
+def no_keywords_msg() -> str:
+    """
+    ランチミーティング受付時間外のメッセージをセットする。
+
+    :return : Botアカウントが投稿するメッセージ
+    """
+    bot_reply_msg  = "キーワードがないので、何もできませんでした。。:cry:\n"
+    bot_reply_msg += "ひるみちゃんに使い方を聞いてみてね！"
+    return bot_reply_msg
+
 @app.route('/hirumibot', methods=['POST'])
 def lunch_meeting_manage():
     """ ランチミーティングの管理 """
@@ -173,35 +249,56 @@ def lunch_meeting_manage():
     # ヘルプはいつでも受け付ける
     keyword_check_jadge = keyword_check('help', mm_posted_msg)
     if keyword_check_jadge == True:
-        bot_reply_msg = set_help_msg()
+        bot_reply_msg = help_msg()
         bot_reply_content(bot_reply_msg, mm_posted_user, mm_posted_msg)
         return
 
     #reception_possible_jadge = reception_possible_check()
     reception_possible_jadge = True
     if reception_possible_jadge == False:
-        bot_reply_msg = set_outside_reception_hours_msg()
+        bot_reply_msg = outside_reception_hours_msg()
         bot_reply_content(bot_reply_msg, mm_posted_user, mm_posted_msg)
         return
 
-    # todo: ランチミーティング受付処理の追加
     # 人数確認
+    keyword_check_jadge = keyword_check('count', mm_posted_msg)
+    if keyword_check_jadge == True:
+        bot_reply_msg = cancel_participation(mm_posted_user)
+        bot_reply_content(bot_reply_msg, mm_posted_user, mm_posted_msg)
+        return
 
     # 参加取り消し
+    keyword_check_jadge = keyword_check('cancel', mm_posted_msg)
+    if keyword_check_jadge == True:
+        bot_reply_msg = cancel_participation(mm_posted_user)
+        bot_reply_content(bot_reply_msg, mm_posted_user, mm_posted_msg)
+        return
 
-    # 参加
+    # 参加登録
     keyword_check_jadge = keyword_check('entry', mm_posted_msg)
     if keyword_check_jadge == True:
-        bot_reply_msg = accept_participant(mm_posted_user)
+        bot_reply_msg = participant_registration(mm_posted_user)
         bot_reply_content(bot_reply_msg, mm_posted_user, mm_posted_msg)
         return
 
     # 出発
+    keyword_check_jadge = keyword_check('go', mm_posted_msg)
+    if keyword_check_jadge == True:
+        bot_reply_msg = depart_lunch_meetig()
+        bot_reply_content(bot_reply_msg, mm_posted_user, mm_posted_msg)
+        return
 
     # リセット
+    keyword_check_jadge = keyword_check('reset', mm_posted_msg)
+    if keyword_check_jadge == True:
+        bot_reply_msg = reset_participant()
+        bot_reply_content(bot_reply_msg, mm_posted_user, mm_posted_msg)
+        return
 
-    # その他
-
+    # キーワードなし
+    bot_reply_msg = no_keywords_msg()
+    bot_reply_content(bot_reply_msg, mm_posted_user, mm_posted_msg)
+    return
 
 if __name__ == '__main__':
     app.debug = True
