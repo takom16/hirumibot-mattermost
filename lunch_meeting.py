@@ -2,6 +2,7 @@ import configparser
 import json
 import sqlite3
 from datetime import datetime, date
+from random import shuffle
 
 import jpholiday
 import requests
@@ -138,7 +139,30 @@ def count_participant() -> str:
 
     :return : Botアカウントが投稿するメッセージ
     """
-    pass
+    conn = sqlite3.connect(HIRUMIBOT_DB)
+    c = conn.cursor()
+
+    count_query = 'SELECT count(*) FROM participant'
+    c.execute(count_query)
+    registerd_num = c.fetchall()[0][0]
+
+    if registerd_num == 0:
+        conn.close()
+        bot_reply_msg  = (
+            "現在は参加予定者が一人もいません:disappointed_relieved:"
+        )
+    else:
+        list_query = 'SELECT username FROM participant'
+        c.execute(list_query)
+        registerd_user = c.fetchall()
+        conn.close()
+
+        bot_reply_msg = "現在の参加予定者は{}名です！\n".format(registerd_num)
+        bot_reply_msg += "###### +++ 参加予定メンバー +++\n"
+        for username in registerd_user:
+            bot_reply_msg += "@" + username[0] + "\n"
+
+    return bot_reply_msg
 
 def participant_registration(mm_posted_user: str) -> str:
     """
@@ -221,13 +245,78 @@ def reset_participant() -> str:
     bot_reply_msg  = "参加者をリセットしたよ！"
     return bot_reply_msg
 
+def lunch_grouping(participant_list: list, member_max: int) -> str:
+    """
+    ランチミーティングの班分けを行う。
+
+    :param participant_list : 参加者リスト
+    :param member_max       : 一班の最大人数
+    :return                 : Botアカウントが投稿するメッセージ
+    """
+    participant_num = len(participant_list)
+    team_num_max = int(participant_num / member_max) + 1
+
+    bot_reply_msg = ""
+    for team_num in range(1, team_num_max):
+        bot_reply_msg += "###### +++ {}班 +++\n".format(team_num)
+        for i in range(1, member_max + 1):
+            participant_name = participant_list.pop()
+            bot_reply_msg += "@" + participant_name + "\n"
+
+    return bot_reply_msg
+
 def depart_lunch_meetig() -> str:
     """
     ランチミーティングに出発する。
 
     :return : Botアカウントが投稿するメッセージ
     """
-    pass
+    conn = sqlite3.connect(HIRUMIBOT_DB)
+    c = conn.cursor()
+
+    count_query = 'SELECT count(*) FROM participant'
+    c.execute(count_query)
+    participant_num = c.fetchall()[0][0]
+
+    if participant_num == 0:
+        conn.close()
+        bot_reply_msg = "参加者が一人もいません:sweat:"
+        return bot_reply_msg
+
+    list_query = 'SELECT username FROM participant'
+    c.execute(list_query)
+    participants = c.fetchall()
+    conn.close()
+
+    bot_reply_msg = "はーい！参加メンバーはこちら！\n"
+
+    # 参加者が5名以下なら一班にする
+    if participant_num <= 5:
+        bot_reply_msg += "###### +++ 参加メンバー +++\n"
+        for participant_name in participants:
+            bot_reply_msg += "@" + participant_name[0] + "\n"
+
+        return bot_reply_msg
+
+    # 参加者が6名以上なら人数が均等になるように班分けする
+    participant_list = [username[0] for username in participants]
+    shuffle(participant_list)
+    MEMBER_MAX_NUM = 4
+    MEMBER_MIN_NUM = 3
+
+    mod_mem_max = int(participant_num % MEMBER_MAX_NUM)
+    mod_mem_min = int(participant_num % MEMBER_MIN_NUM)
+    if mod_mem_max == 0:
+        bot_reply_msg += lunch_grouping(participant_list, MEMBER_MAX_NUM)
+    elif mod_mem_min == 0:
+        bot_reply_msg += lunch_grouping(participant_list, MEMBER_MIN_NUM)
+    else:
+        if mod_mem_max >= MEMBER_MIN_NUM:
+            bot_reply_msg += lunch_grouping(participant_list, MEMBER_MAX_NUM)
+        else:
+            bot_reply_msg += lunch_grouping(participant_list, MEMBER_MIN_NUM)
+
+    return bot_reply_msg
 
 def no_keywords_msg() -> str:
     """
@@ -235,8 +324,10 @@ def no_keywords_msg() -> str:
 
     :return : Botアカウントが投稿するメッセージ
     """
-    bot_reply_msg  = "キーワードがないので、何もできませんでした。。:cry:\n"
-    bot_reply_msg += "ひるみちゃんに使い方を聞いてみてね！"
+    bot_reply_msg  = (
+        "キーワードがないので、何もできませんでした:dizzy_face:\n"
+        "ひるみちゃんに使い方を聞いてみてね！"
+    )
     return bot_reply_msg
 
 @app.route('/hirumibot', methods=['POST'])
@@ -262,7 +353,7 @@ def lunch_meeting_manage():
     # 人数確認
     keyword_check_jadge = keyword_check('count', mm_posted_msg)
     if keyword_check_jadge == True:
-        bot_reply_msg = cancel_participation(mm_posted_user)
+        bot_reply_msg = count_participant()
         bot_reply_content(bot_reply_msg, mm_posted_user, mm_posted_msg)
         return
 
