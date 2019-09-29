@@ -26,7 +26,6 @@ def bot_posts_content(posts_msg: str, dst_chl_id: str) -> str:
     :param dst_chl_id : 投稿先のチャンネルID
     :return           : HTTPリクエスト(POST)
     """
-
     bot_posts_headers = {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + HIRUMIBOT_TOKEN,
