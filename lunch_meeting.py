@@ -257,11 +257,16 @@ def lunch_grouping(participant_list: list, member_max: int) -> str:
     team_num_max = int(participant_num / member_max) + 1
 
     bot_reply_msg = ""
+    p_begin = 0
+    p_end = member_max
     for team_num in range(1, team_num_max):
+        participant_name = participant_list[p_begin:p_end]
         bot_reply_msg += "###### +++ {}班 +++\n".format(team_num)
-        for i in range(1, member_max + 1):
-            participant_name = participant_list.pop()
-            bot_reply_msg += "@" + participant_name + "\n"
+        for p_name in participant_name:
+            bot_reply_msg += "@" + p_name + "\n"
+
+        p_begin = p_end
+        p_end += member_max
 
     return bot_reply_msg
 
