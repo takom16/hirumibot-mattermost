@@ -245,31 +245,6 @@ def reset_participant() -> str:
     bot_reply_msg  = "参加者をリセットしたよ！"
     return bot_reply_msg
 
-def lunch_grouping(participant_list: list, member_max: int) -> str:
-    """
-    ランチミーティングの班分けを行う。
-
-    :param participant_list : 参加者リスト
-    :param member_max       : 一班の最大人数
-    :return                 : Botアカウントが投稿するメッセージ
-    """
-    participant_num = len(participant_list)
-    team_num_max = int(participant_num / member_max) + 1
-
-    bot_reply_msg = ""
-    p_begin = 0
-    p_end = member_max
-    for team_num in range(1, team_num_max):
-        participant_name = participant_list[p_begin:p_end]
-        bot_reply_msg += "###### +++ {}班 +++\n".format(team_num)
-        for p_name in participant_name:
-            bot_reply_msg += "@" + p_name + "\n"
-
-        p_begin = p_end
-        p_end += member_max
-
-    return bot_reply_msg
-
 def depart_lunch_meetig() -> str:
     """
     ランチミーティングに出発する。
@@ -279,19 +254,16 @@ def depart_lunch_meetig() -> str:
     conn = sqlite3.connect(HIRUMIBOT_DB)
     c = conn.cursor()
 
-    count_query = 'SELECT count(*) FROM participant'
-    c.execute(count_query)
-    participant_num = c.fetchall()[0][0]
-
-    if participant_num == 0:
-        conn.close()
-        bot_reply_msg = "参加者が一人もいません:sweat:"
-        return bot_reply_msg
-
     list_query = 'SELECT username FROM participant'
     c.execute(list_query)
     participants = c.fetchall()
     conn.close()
+
+    participant_num = len(participants)
+    if participant_num == 0:
+        conn.close()
+        bot_reply_msg = "参加者が一人もいません:sweat:"
+        return bot_reply_msg
 
     bot_reply_msg = "はーい！参加メンバーはこちら！\n"
 
@@ -309,17 +281,26 @@ def depart_lunch_meetig() -> str:
     MEMBER_MAX_NUM = 4
     MEMBER_MIN_NUM = 3
 
-    mod_mem_max = int(participant_num % MEMBER_MAX_NUM)
-    mod_mem_min = int(participant_num % MEMBER_MIN_NUM)
-    if mod_mem_max == 0:
-        bot_reply_msg += lunch_grouping(participant_list, MEMBER_MAX_NUM)
-    elif mod_mem_min == 0:
-        bot_reply_msg += lunch_grouping(participant_list, MEMBER_MIN_NUM)
-    else:
-        if mod_mem_max >= MEMBER_MIN_NUM:
-            bot_reply_msg += lunch_grouping(participant_list, MEMBER_MAX_NUM)
+    team_num = 1
+    for i in participant_list:
+        mod_max = int(len(participant_list) % MEMBER_MAX_NUM)
+        mod_min = int(len(participant_list) % MEMBER_MIN_NUM)
+        bot_reply_msg += "###### +++ {}班 +++\n".format(team_num)
+        if mod_max == 0:
+            for i in range(MEMBER_MAX_NUM):
+                participant_name = participant_list.pop()
+                bot_reply_msg += "@" + participant_name + "\n"
+        elif mod_min == 0:
+            for i in range(MEMBER_MIN_NUM):
+                participant_name = participant_list.pop()
+                bot_reply_msg += "@" + participant_name + "\n"
         else:
-            bot_reply_msg += lunch_grouping(participant_list, MEMBER_MIN_NUM)
+            for i in range(MEMBER_MAX_NUM):
+                participant_name = participant_list.pop()
+                bot_reply_msg += "@" + participant_name + "\n"
+        team_num += 1
+
+    reset_participant()
 
     return bot_reply_msg
 
