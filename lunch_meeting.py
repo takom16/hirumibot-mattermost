@@ -281,25 +281,38 @@ def depart_lunch_meetig() -> str:
     MEMBER_MAX_NUM = 4
     MEMBER_MIN_NUM = 3
 
-    team_num = 1
-    for i in participant_list:
-        mod_max = int(len(participant_list) % MEMBER_MAX_NUM)
-        mod_min = int(len(participant_list) % MEMBER_MIN_NUM)
-        bot_reply_msg += "###### +++ {}班 +++\n".format(team_num)
-        if mod_max == 0:
-            for i in range(MEMBER_MAX_NUM):
-                participant_name = participant_list.pop()
-                bot_reply_msg += "@" + participant_name + "\n"
-        elif mod_min == 0:
-            for i in range(MEMBER_MIN_NUM):
-                participant_name = participant_list.pop()
-                bot_reply_msg += "@" + participant_name + "\n"
-        else:
-            for i in range(MEMBER_MAX_NUM):
-                participant_name = participant_list.pop()
-                bot_reply_msg += "@" + participant_name + "\n"
-        team_num += 1
+    # 班分けしてリストを作成
+    p_idx = 0
+    group_list = []
+    while True:
+        if participant_num == 0:
+            break
 
+        mod_max = int(participant_num % MEMBER_MAX_NUM)
+        mod_min = int(participant_num % MEMBER_MIN_NUM)
+        if mod_max == 0:
+            group_list += [participant_list[p_idx : p_idx + MEMBER_MAX_NUM]]
+            p_idx += MEMBER_MAX_NUM
+            participant_num -= MEMBER_MAX_NUM
+        elif mod_min == 0:
+            group_list += [participant_list[p_idx : p_idx + MEMBER_MIN_NUM]]
+            p_idx += MEMBER_MIN_NUM
+            participant_num -= MEMBER_MIN_NUM
+        else:
+            group_list += [participant_list[p_idx : p_idx + MEMBER_MAX_NUM]]
+            p_idx += MEMBER_MAX_NUM
+            participant_num -= MEMBER_MAX_NUM
+
+    # 班ごとにメンバーを出力
+    group_num = 1
+    for group in group_list:
+        bot_reply_msg += "###### +++ {}班 +++\n".format(group_num)
+        for participant_name in group:
+            bot_reply_msg += "@" + participant_name + "\n"
+
+        group_num += 1
+
+    # 班分けを出力したら、参加者テーブルを初期化
     reset_participant()
 
     return bot_reply_msg
