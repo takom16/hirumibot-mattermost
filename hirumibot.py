@@ -192,7 +192,7 @@ def participant_registration(mm_posted_user: str) -> str:
     if registerd_num != 0:
         conn.close()
         bot_reply_msg  = "@{} さんは".format(mm_posted_user)
-        bot_reply_msg += "すでに参加表明済みだよ！"
+        bot_reply_msg += "すでに参加表明済みだよ！:laughing:"
         return bot_reply_msg
 
     # 未登録のユーザであれば、参加者登録を行う
@@ -226,7 +226,7 @@ def cancel_participation(mm_posted_user: str) -> str:
     if registerd_num == 0:
         conn.close()
         bot_reply_msg  = "@{} さんは".format(mm_posted_user)
-        bot_reply_msg += "まだ参加表明してないよ！"
+        bot_reply_msg += "まだ参加表明してないよ！:innocent:"
         return bot_reply_msg
 
     # 参加者登録済みのユーザであれば、参加取り消し処理を行う
@@ -236,7 +236,7 @@ def cancel_participation(mm_posted_user: str) -> str:
     conn.close()
 
     bot_reply_msg  = "@{} さんの参加を取り消したよ！".format(mm_posted_user)
-    bot_reply_msg += "また今度参加してね！"
+    bot_reply_msg += "また今度参加してね！:cry:"
     return bot_reply_msg
 
 def count_participant() -> str:
@@ -265,7 +265,7 @@ def count_participant() -> str:
         registerd_user = c.fetchall()
         conn.close()
 
-        bot_reply_msg = "現在の参加予定者は{}名です！\n".format(registerd_num)
+        bot_reply_msg = "現在の参加予定者は{}名です！:kissing_heart:\n".format(registerd_num)
         bot_reply_msg += "###### +++ 参加予定メンバー +++\n"
         for username in registerd_user:
             bot_reply_msg += "@" + username[0] + "\n"
@@ -288,7 +288,7 @@ def reset_participant() -> str:
     conn.commit()
     conn.close()
 
-    bot_reply_msg  = "参加者をリセットしたよ！"
+    bot_reply_msg  = "参加者をリセットしたよ！:expressionless:"
     return bot_reply_msg
 
 def depart_lunch_meetig() -> str:
@@ -314,7 +314,7 @@ def depart_lunch_meetig() -> str:
         bot_reply_msg = "参加者が一人もいません:sweat:"
         return bot_reply_msg
 
-    bot_reply_msg = "はーい！参加メンバーはこちら！\n"
+    bot_reply_msg = "はーい！参加メンバーはこちら！:smile:\n"
 
     # 参加者が5名以下なら一班にする
     if participant_num <= 5:
@@ -400,7 +400,7 @@ def outside_reception_hours_msg() -> str:
 
     :return : Botアカウントが投稿するメッセージ
     """
-    bot_reply_msg = "現在はランチミーティングの受付時間外です。 :sweat:"
+    bot_reply_msg = "現在はランチミーティングの受付時間外です:sweat:"
     return bot_reply_msg
 
 def no_keywords_msg() -> str:
@@ -428,7 +428,7 @@ def morning_assembly_notice():
     if holiday_jadge == True:
         return
 
-    bot_posts_msg = "朝ミの時間です！"
+    bot_posts_msg = "朝ミの時間です！:clock930:"
     bot_posts_content(bot_posts_msg, CHANNEL_ID_ALL)
 
 def leaving_on_time_notice():
@@ -442,8 +442,8 @@ def leaving_on_time_notice():
         return
 
     bot_posts_msg = (
-        "18時です！\n"
-        "残業申請をしていない人は帰りましょう！"
+        "18時です！:clock6:\n"
+        "残業申請をしていない人は帰りましょう！:running_man::dash:"
     )
     bot_posts_content(bot_posts_msg, CHANNEL_ID_ALL)
 
@@ -458,8 +458,8 @@ def premium_friday_notice():
         return
 
     bot_posts_msg = (
-        "本日はプレミアムフライデーです！\n"
-        "早めに仕事を切り上げて、プレ金を満喫しましょう！"
+        "本日はプレミアムフライデーです！:clock3:\n"
+        "早めに仕事を切り上げて、プレ金を満喫しましょう！:beers:"
     )
     bot_posts_content(bot_posts_msg, CHANNEL_ID_ALL)
 
@@ -478,9 +478,9 @@ def lunch_meeting_notice():
     reset_participant()
 
     bot_posts_msg = (
-        "本日はランチミーティングの日です！\n"
+        "本日はランチミーティングの日です！:clock11:\n"
         "参加する方はメッセージの先頭に"
-        " #hirumi とタグを付けて投稿してください！"
+        " #hirumi とタグを付けて投稿してください！:smiley:"
     )
     bot_posts_content(bot_posts_msg, CHANNEL_ID_LUNCH)
 
@@ -494,5 +494,5 @@ def lunch_time_notice():
     if holiday_jadge == True:
         return
 
-    bot_posts_msg = "ランチの時間です！"
+    bot_posts_msg = "ランチの時間です！:clock12:"
     bot_posts_content(bot_posts_msg, CHANNEL_ID_LUNCH)
