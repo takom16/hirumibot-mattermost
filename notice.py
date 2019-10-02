@@ -22,6 +22,6 @@ def bot_notice():
 
     while True:
         schedule.run_pending()
-        sleep(60)
+        sleep(10)
 
 bot_notice()

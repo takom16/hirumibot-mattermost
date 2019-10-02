@@ -165,7 +165,7 @@ def reception_possible_check() -> bool:
     if holiday_jadge == True:
         reception_possible_jadge = False
 
-    if posted_weekday != 'Wednesday' and not 11 <= posted_datetime.hour < 13:
+    if posted_weekday != 'Wednesday' or not 11 <= posted_datetime.hour < 13:
         reception_possible_jadge = False
 
     return reception_possible_jadge
