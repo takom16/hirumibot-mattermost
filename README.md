@@ -1,2 +1,2 @@
 # hirumibot-mattermost
-ひるみちゃん
+[ひるみちゃん](https://github.com/go-to/hirumibot)のMattermost版
