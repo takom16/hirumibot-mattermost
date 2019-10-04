@@ -85,6 +85,7 @@ def bot_reply_content(bot_reply_msg: str,
 
     return bot_reply_request
 
+
 # 確認系
 def keyword_check(category: str, mm_posted_msg: str) -> bool:
     """
@@ -147,7 +148,6 @@ def premium_friday_check() -> bool:
 
     return premium_friday_jadge
 
-
 def reception_possible_check() -> bool:
     """
     ランチミーティング受付可能時間帯の判定
@@ -170,6 +170,7 @@ def reception_possible_check() -> bool:
 
     return reception_possible_jadge
 
+
 # ランチミーティング系
 def participant_registration(mm_posted_user: str) -> str:
     """
@@ -191,8 +192,9 @@ def participant_registration(mm_posted_user: str) -> str:
 
     if registerd_num != 0:
         conn.close()
-        bot_reply_msg  = "@{} さんは".format(mm_posted_user)
-        bot_reply_msg += "すでに参加表明済みだよ！:laughing:"
+        bot_reply_msg = (
+            f"@{mm_posted_user} さんはすでに参加表明済みだよ！:laughing:"
+        )
         return bot_reply_msg
 
     # 未登録のユーザであれば、参加者登録を行う
@@ -201,8 +203,10 @@ def participant_registration(mm_posted_user: str) -> str:
     conn.commit()
     conn.close()
 
-    bot_reply_msg  = "@{} さんの参加を受け付けました！".format(mm_posted_user)
-    bot_reply_msg += "わーい！:laughing::raised_hands:"
+    bot_reply_msg = (
+        f"@{mm_posted_user} さんの参加を受け付けました！"
+        "わーい！:laughing::raised_hands:"
+    )
     return bot_reply_msg
 
 def cancel_participation(mm_posted_user: str) -> str:
@@ -225,8 +229,9 @@ def cancel_participation(mm_posted_user: str) -> str:
 
     if registerd_num == 0:
         conn.close()
-        bot_reply_msg  = "@{} さんは".format(mm_posted_user)
-        bot_reply_msg += "まだ参加表明してないよ！:innocent:"
+        bot_reply_msg = (
+            f"@{mm_posted_user} さんはまだ参加表明してないよ！:innocent:"
+        )
         return bot_reply_msg
 
     # 参加者登録済みのユーザであれば、参加取り消し処理を行う
@@ -235,8 +240,10 @@ def cancel_participation(mm_posted_user: str) -> str:
     conn.commit()
     conn.close()
 
-    bot_reply_msg  = "@{} さんの参加を取り消したよ！".format(mm_posted_user)
-    bot_reply_msg += "また今度参加してね！:cry:"
+    bot_reply_msg = (
+        f"@{mm_posted_user} さんの参加を取り消したよ！"
+        "また今度参加してね！:cry:"
+    )
     return bot_reply_msg
 
 def count_participant() -> str:
@@ -256,7 +263,7 @@ def count_participant() -> str:
 
     if registerd_num == 0:
         conn.close()
-        bot_reply_msg  = (
+        bot_reply_msg = (
             "現在は参加予定者が一人もいません:disappointed_relieved:"
         )
     else:
@@ -265,10 +272,12 @@ def count_participant() -> str:
         registerd_user = c.fetchall()
         conn.close()
 
-        bot_reply_msg = "現在の参加予定者は{}名です！:kissing_heart:\n".format(registerd_num)
-        bot_reply_msg += "###### +++ 参加予定メンバー +++\n"
+        bot_reply_msg = (
+            f"現在の参加予定者は{registerd_num}名です！:kissing_heart:\n"
+            "###### +++ 参加予定メンバー +++\n"
+        )
         for username in registerd_user:
-            bot_reply_msg += "@" + username[0] + "\n"
+            bot_reply_msg += f"@{username[0]}\n"
 
     return bot_reply_msg
 
@@ -288,7 +297,7 @@ def reset_participant() -> str:
     conn.commit()
     conn.close()
 
-    bot_reply_msg  = "参加者をリセットしたよ！:expressionless:"
+    bot_reply_msg = "参加者をリセットしたよ！:expressionless:"
     return bot_reply_msg
 
 def depart_lunch_meetig() -> str:
@@ -320,7 +329,7 @@ def depart_lunch_meetig() -> str:
     if participant_num <= 5:
         bot_reply_msg += "###### +++ 参加メンバー +++\n"
         for participant_name in participants:
-            bot_reply_msg += "@" + participant_name[0] + "\n"
+            bot_reply_msg += f"@{participant_name[0]}\n"
 
         return bot_reply_msg
 
@@ -333,10 +342,7 @@ def depart_lunch_meetig() -> str:
     # 班分けしてリストを作成
     p_idx = 0
     group_list = []
-    while True:
-        if participant_num == 0:
-            break
-
+    while participant_num > 0:
         mod_max = int(participant_num % MEMBER_MAX_NUM)
         mod_min = int(participant_num % MEMBER_MIN_NUM)
         if mod_max == 0:
@@ -355,9 +361,9 @@ def depart_lunch_meetig() -> str:
     # 班ごとにメンバーを出力
     group_num = 1
     for group in group_list:
-        bot_reply_msg += "###### +++ {}班 +++\n".format(group_num)
+        bot_reply_msg += f"###### +++ {group_num}班 +++\n"
         for participant_name in group:
-            bot_reply_msg += "@" + participant_name + "\n"
+            bot_reply_msg += f"@{participant_name}\n"
 
         group_num += 1
 
@@ -377,7 +383,7 @@ def help_msg() -> str:
     """
     bot_reply_msg = (
         "##### ひるみちゃんの使い方\n"
-        "メッセージの先頭に #hirumi とタグを付けて、"
+        "ひるみちゃん(@hirumibot)宛に"
         "キーワードを含む文章を投稿してください。\n"
         "下記キーワード以外でも反応できることがあります。"
         "いろいろ試してみてね！:wink:\n\n"
@@ -412,7 +418,7 @@ def no_keywords_msg() -> str:
 
     :return : Botアカウントが投稿するメッセージ
     """
-    bot_reply_msg  = (
+    bot_reply_msg = (
         "キーワードがないので、何もできませんでした:dizzy_face:\n"
         "ひるみちゃんに使い方を聞いてみてね！"
     )
