@@ -353,8 +353,8 @@ def depart_lunch_meetig() -> str:
             participant_num -= MEMBER_MAX_NUM
 
     # 班ごとにメンバーを出力
-    for group_num, group in enumerate(group_list):
-        bot_reply_msg += f"###### +++ {group_num + 1}班 +++\n"
+    for group_num, group in enumerate(group_list, 1):
+        bot_reply_msg += f"###### +++ {group_num}班 +++\n"
         for participant_name in group:
             bot_reply_msg += f"@{participant_name}\n"
 
