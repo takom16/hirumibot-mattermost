@@ -107,13 +107,11 @@ def keyword_check(category: str, mm_posted_msg: str) -> bool:
     keyword_list = c.fetchall()
     conn.close()
 
-    keyword_check_jadge = False
     for keyword in keyword_list:
         if keyword[0] in mm_posted_msg:
-            keyword_check_jadge = True
-            break
+            return True
 
-    return keyword_check_jadge
+    return False
 
 def holiday_check() -> bool:
     """
@@ -142,11 +140,9 @@ def premium_friday_check() -> bool:
         break
 
     if today.day == premium_friday:
-        premium_friday_jadge = True
+        return True
     else:
-        premium_friday_jadge = False
-
-    return premium_friday_jadge
+        return False
 
 def reception_possible_check() -> bool:
     """
@@ -159,16 +155,14 @@ def reception_possible_check() -> bool:
     posted_datetime = datetime.now()
     posted_weekday  = posted_datetime.strftime('%A')
 
-    reception_possible_jadge = True
-
     holiday_jadge = holiday_check()
     if holiday_jadge == True:
-        reception_possible_jadge = False
+        return False
 
     if posted_weekday != 'Wednesday' or not 11 <= posted_datetime.hour < 13:
-        reception_possible_jadge = False
+        return False
 
-    return reception_possible_jadge
+    return True
 
 
 # ランチミーティング系
@@ -325,15 +319,15 @@ def depart_lunch_meetig() -> str:
 
     bot_reply_msg = "はーい！参加メンバーはこちら！:smile:\n"
 
-    # 参加者が5名以下なら一班にする
-    if participant_num <= 5:
+    # 参加者が6名以下なら一班にする
+    if participant_num <= 6:
         bot_reply_msg += "###### +++ 参加メンバー +++\n"
         for participant_name in participants:
             bot_reply_msg += f"@{participant_name[0]}\n"
 
         return bot_reply_msg
 
-    # 参加者が6名以上なら班分けする
+    # 参加者が7名以上なら一班最大4名、最低3名となるよう班分けする
     participant_list = [username[0] for username in participants]
     shuffle(participant_list)
     MEMBER_MAX_NUM = 4
@@ -359,13 +353,10 @@ def depart_lunch_meetig() -> str:
             participant_num -= MEMBER_MAX_NUM
 
     # 班ごとにメンバーを出力
-    group_num = 1
-    for group in group_list:
-        bot_reply_msg += f"###### +++ {group_num}班 +++\n"
+    for group_num, group in enumerate(group_list):
+        bot_reply_msg += f"###### +++ {group_num + 1}班 +++\n"
         for participant_name in group:
             bot_reply_msg += f"@{participant_name}\n"
-
-        group_num += 1
 
     # 班分けを出力したら、参加者テーブルを初期化
     reset_participant()
