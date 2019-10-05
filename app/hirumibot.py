@@ -10,7 +10,6 @@ import jpholiday
 import requests
 
 p = Path(__file__)
-APP_DIR    = p.resolve().parent
 CONFIG_DIR = p.resolve().parent.parent / 'config'
 
 config = configparser.ConfigParser()
