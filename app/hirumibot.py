@@ -480,8 +480,8 @@ def lunch_meeting_notice():
 
     bot_posts_msg = (
         "本日はランチミーティングの日です！:clock11:\n"
-        "参加する方はメッセージの先頭に"
-        " #hirumi とタグを付けて投稿してください！:smiley:"
+        "参加する方はひるみちゃん(@hirumibot)宛に"
+        "メッセージを投稿してください！:smiley:"
     )
     bot_posts_content(bot_posts_msg, CHANNEL_ID_LUNCH)
 
