@@ -3,13 +3,18 @@ import configparser
 import json
 import sqlite3
 from datetime import datetime, date
+from pathlib import Path
 from random import shuffle
 
 import jpholiday
 import requests
 
+p = Path(__file__)
+APP_DIR    = p.resolve().parent
+CONFIG_DIR = p.resolve().parent.parent / 'config'
+
 config = configparser.ConfigParser()
-config.read('./config.ini')
+config.read(CONFIG_DIR / 'setting.ini')
 
 MM_API_ADDRESS   = config['Mattermost']['MM_API_ADDRESS']
 CHANNEL_ID_ALL   = config['Mattermost']['CHANNEL_ID_ALL']
