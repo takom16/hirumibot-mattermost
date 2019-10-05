@@ -5,7 +5,7 @@ import schedule
 import hirumibot
 
 def bot_notice():
-    """ Botアカウントから指定の時間にメッセージを通知する。 """
+    """ Botアカウントから指定の時間にメッセージを通知 """
     # 毎日18:00に定時退社を通知
     schedule.every().day.at("18:00").do(hirumibot.leaving_on_time_notice)
 
@@ -13,7 +13,7 @@ def bot_notice():
     schedule.every().monday.at("09:30").do(hirumibot.morning_assembly_notice)
     schedule.every().wednesday.at("09:30").do(hirumibot.morning_assembly_notice)
 
-    # 毎日水曜日にランチミーティングを通知
+    # 毎週水曜日にランチミーティングを通知
     schedule.every().wednesday.at("11:00").do(hirumibot.lunch_meeting_notice)
     schedule.every().wednesday.at("12:00").do(hirumibot.lunch_time_notice)
 
