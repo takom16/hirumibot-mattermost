@@ -135,7 +135,7 @@ def premium_friday_check() -> bool:
     cal = calendar.Calendar(firstweekday=calendar.FRIDAY)
     today = datetime.now()
 
-    for days in reversed(cal.monthdatescalendar(today.year, today.month())):
+    for days in reversed(cal.monthdatescalendar(today.year, today.month)):
         premium_friday = days[0]
         break
 
