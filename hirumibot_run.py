@@ -47,7 +47,7 @@ def process_monitor():
 
         p_lunch_chk = "pgrep -c gunicorn"
         p_lunch_num = Popen(p_lunch_chk.split(), stdout=PIPE).communicate()
-        if gunicorn_proc not in str(p_lunch_num[0].decode('utf-8')):
+        if gunicorn_proc not in p_lunch_num[0].decode('utf-8'):
             endprocess()
 
 atexit.register(endprocess)

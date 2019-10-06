@@ -51,17 +51,17 @@ def bot_posts_content(posts_msg: str, dst_chl_id: str) -> str:
     return bot_posts_request
 
 def bot_reply_content(bot_reply_msg: str,
-                      mm_posted_user: str, mm_posted_msg: str) -> str:
+                      posted_user: str, posted_msg: str) -> str:
     """
     メッセージの返信
 
     トリガーワードを含んだ投稿を引用する形式で、
     Botアカウントからメッセージを投稿する。
 
-    :param bot_reply_msg  : Botアカウントが投稿するメッセージ
-    :param mm_posted_user : 引用元のメッセージを投稿したユーザ名
-    :param mm_posted_msg  : 引用元のメッセージ
-    :return               : HTTPリクエスト(POST)
+    :param bot_reply_msg : Botアカウントが投稿するメッセージ
+    :param posted_user   : 引用元のメッセージを投稿したユーザ名
+    :param posted_msg    : 引用元のメッセージ
+    :return              : HTTPリクエスト(POST)
     """
     bot_reply_headers = {
         'Content-Type': 'application/json',
@@ -74,8 +74,8 @@ def bot_reply_content(bot_reply_msg: str,
         "props": {
             "attachments": [
                     {
-                "author_name": mm_posted_user,
-                "text": mm_posted_msg,
+                "author_name": posted_user,
+                "text": posted_msg,
                 }
             ]
         },
@@ -91,16 +91,16 @@ def bot_reply_content(bot_reply_msg: str,
 
 
 # 確認系
-def keyword_check(category: str, mm_posted_msg: str) -> bool:
+def keyword_check(category: str, posted_msg: str) -> bool:
     """
     キーワードの確認
 
     指定されたカテゴリのキーワードをキーワードリストテーブルから取得し、
     投稿されたメッセージ内にキーワードが含まれているかをチェックする。
 
-    :param category      : チェック対象キーワードのカテゴリ
-    :param mm_posted_msg : 投稿されたメッセージ
-    :return              : メッセージ内にキーワードが含まれているかの判定結果
+    :param category   : チェック対象キーワードのカテゴリ
+    :param posted_msg : 投稿されたメッセージ
+    :return           : メッセージ内にキーワードが含まれているかの判定結果
     """
     conn = sqlite3.connect(HIRUMIBOT_DB)
     c = conn.cursor()
@@ -112,7 +112,7 @@ def keyword_check(category: str, mm_posted_msg: str) -> bool:
     conn.close()
 
     for keyword in keyword_list:
-        if keyword[0] in mm_posted_msg:
+        if keyword[0] in posted_msg:
             return True
 
     return False
@@ -170,18 +170,18 @@ def reception_possible_check() -> bool:
 
 
 # ランチミーティング系
-def participant_registration(mm_posted_user: str) -> str:
+def participant_registration(posted_user: str) -> str:
     """
     ランチミーティング参加者の登録
 
     参加表明したユーザを参加者テーブルに登録する。
 
-    :param mm_posted_user : メッセージを投稿したユーザ名
-    :return               : Botアカウントが投稿するメッセージ
+    :param posted_user : メッセージを投稿したユーザ名
+    :return            : Botアカウントが投稿するメッセージ
     """
     conn = sqlite3.connect(HIRUMIBOT_DB)
     c = conn.cursor()
-    target_user = (mm_posted_user,)
+    target_user = (posted_user,)
 
     # すでに参加者として登録済みのユーザか確認
     check_query = 'SELECT count(*) FROM participant WHERE username = ?'
@@ -191,7 +191,7 @@ def participant_registration(mm_posted_user: str) -> str:
     if registerd_num != 0:
         conn.close()
         bot_reply_msg = (
-            f"@{mm_posted_user} さんはすでに参加表明済みだよ！:laughing:"
+            f"@{posted_user} さんはすでに参加表明済みだよ！:laughing:"
         )
         return bot_reply_msg
 
@@ -202,23 +202,23 @@ def participant_registration(mm_posted_user: str) -> str:
     conn.close()
 
     bot_reply_msg = (
-        f"@{mm_posted_user} さんの参加を受け付けました！"
+        f"@{posted_user} さんの参加を受け付けました！"
         "わーい！:laughing::raised_hands:"
     )
     return bot_reply_msg
 
-def cancel_participation(mm_posted_user: str) -> str:
+def cancel_participation(posted_user: str) -> str:
     """
     ランチミーティング参加のキャンセル
 
     参加をキャンセルしたユーザを参加者テーブルから削除する。
 
-    :param mm_posted_user : メッセージを投稿したユーザ名
-    :return               : Botアカウントが投稿するメッセージ
+    :param posted_user : メッセージを投稿したユーザ名
+    :return            : Botアカウントが投稿するメッセージ
     """
     conn = sqlite3.connect(HIRUMIBOT_DB)
     c = conn.cursor()
-    target_user = (mm_posted_user,)
+    target_user = (posted_user,)
 
     # すでに参加者として登録済みのユーザか確認
     check_query = 'SELECT count(*) FROM participant WHERE username = ?'
@@ -228,7 +228,7 @@ def cancel_participation(mm_posted_user: str) -> str:
     if registerd_num == 0:
         conn.close()
         bot_reply_msg = (
-            f"@{mm_posted_user} さんはまだ参加表明してないよ！:innocent:"
+            f"@{posted_user} さんはまだ参加表明してないよ！:innocent:"
         )
         return bot_reply_msg
 
@@ -239,7 +239,7 @@ def cancel_participation(mm_posted_user: str) -> str:
     conn.close()
 
     bot_reply_msg = (
-        f"@{mm_posted_user} さんの参加を取り消したよ！"
+        f"@{posted_user} さんの参加を取り消したよ！"
         "また今度参加してね！:cry:"
     )
     return bot_reply_msg
@@ -337,7 +337,9 @@ def depart_lunch_meetig() -> str:
     MEMBER_MAX_NUM = 4
     MEMBER_MIN_NUM = 3
 
-    # 班分けしてリストを作成
+    # 参加者リストをスライスして班分けリストを作成
+    # まだ班に割り振られていない参加者の数が 4 or 3 の倍数である場合は、
+    # その人数で一班とし、どちらの倍数でもない場合は4人で一班とする。
     p_idx = 0
     group_list = []
     while participant_num > 0:
